@@ -1,0 +1,104 @@
+/* Estilos generales para el contenedor */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 20px;
+}
+
+/* Estilo de la tarjeta */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo del título */
+.card h3 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+/* Estilos del formulario */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+/* Estilos de las etiquetas */
+label {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: -0.8rem;
+}
+
+/* Estilos de los inputs */
+input, select {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background-color: #f9f9f9;
+}
+
+input:focus, select:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    background-color: white;
+}
+
+/* Estilo del botón (añade un botón a tu formulario) */
+button[type="submit"] {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 0.5rem;
+}
+
+button[type="submit"]:hover {
+    background: #2980b9;
+}
+
+/* Estilos responsivos */
+@media (max-width: 480px) {
+    .card {
+        padding: 1.5rem;
+    }
+    
+    input, select, button {
+        padding: 10px 12px;
+    }
+}
+
+/* Estilo para el select */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 1em;
+}

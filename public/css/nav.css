@@ -1,0 +1,86 @@
+.nav-container {
+    background-color: #333;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-left a,
+.section-right a,
+.dropbtn {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+.section-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.username {
+    color: #00bcd4;
+    font-weight: bold;
+}
+
+/* Dropdown Styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #444;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    margin-left: 0;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #555;
+    color: #00bcd4;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Hover Effects */
+.section-left a:hover,
+.section-right a:hover,
+.dropbtn:hover {
+    color: #00bcd4;
+}

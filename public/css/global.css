@@ -1,0 +1,35 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilo general */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.main {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+a {
+    text-decoration: none;
+    color: #007BFF;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+p {
+    margin-bottom: 1rem;
+}
