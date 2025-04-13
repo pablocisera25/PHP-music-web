@@ -9,7 +9,7 @@ class YoutubeSearch
         $this->apiKey = $apiKey;
     }
 
-    public function search($query, $maxResults=12)
+    public function search($query, $maxResults=50)
     {
         $url = 'https://www.googleapis.com/youtube/v3/search';
 

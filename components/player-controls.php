@@ -6,6 +6,19 @@
             <div class="track-info">
                 <div id="current-title" class="track-title">Selecciona una canción</div>
                 <div id="current-channel" class="track-channel">Artista</div>
+
+                <!-- guardar -->
+                <form class="save-form-player" method="post">
+                    <input type="hidden" name="videoId" value="<?= $result['videoId'] ?>">
+                    <input type="hidden" name="title" value="<?= htmlspecialchars($result['title']) ?>">
+                    <input type="hidden" name="channel" value="<?= htmlspecialchars($result['channel']) ?>">
+                    <input type="hidden" name="thumbnail" value="<?= $result['thumbnail'] ?>">
+                    <input type="hidden" name="url" value="<?= $result['url'] ?>">
+
+                    <button class="save-btn" type="submit">
+                        ❤️
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -33,6 +46,7 @@
     </div>
 
     <script src="/public/js/player-controls.js"></script>
+    <script src="/public/js/save-music-player.js"></script>
 
     <style>
         /* Estilos para los controles */
