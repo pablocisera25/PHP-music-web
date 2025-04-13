@@ -6,11 +6,10 @@ $connection = Database::getInstance();
 
 $isSqlite = $connection->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
 
-if($isSqlite)
-{
+if ($isSqlite) {
     $sql = "
-        CREATE TABLE saved_music (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS saved_music (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             userId INT NOT NULL,
             video_id VARCHAR(20) NOT NULL,
             title VARCHAR(255) NOT NULL,
