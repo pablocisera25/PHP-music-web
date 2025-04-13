@@ -19,6 +19,7 @@
     font-weight: bold;
     text-transform: uppercase;
     transition: color 0.3s ease;
+    padding: 10px;
 }
 
 .section-right {

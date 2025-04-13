@@ -42,6 +42,20 @@ if(isset($_GET['q'])) {
             <div class="card-body">
                 <h3 class="card-title"><?= htmlspecialchars($result['title']) ?></h3>
                 <span class="card-channel"><?= htmlspecialchars($result['channel']) ?></span>
+
+                <!-- guardar -->
+                <form class="save-form" method="post">
+                    <input type="hidden" name="videoId" value="<?= $result['videoId'] ?>">
+                    <input type="hidden" name="title" value="<?= htmlspecialchars($result['title']) ?>">
+                    <input type="hidden" name="channel" value="<?= htmlspecialchars($result['channel']) ?>">
+                    <input type="hidden" name="thumbnail" value="<?= $result['thumbnail'] ?>">
+                    <input type="hidden" name="url" value="<?= $result['url'] ?>">
+
+                    <button class="save-btn" type="submit">
+                        ❤️
+                    </button>
+                </form>
+
                 <div class="card-footer">
                     <a href="<?= $result['url'] ?>" class="youtube-link" target="_blank">YouTube</a>
                     <button class="play-btn">Reproducir</button>
@@ -59,3 +73,4 @@ if(isset($_GET['q'])) {
 <script src="https://www.youtube.com/iframe_api"></script>
 <script src="/public/js/player-controls.js"></script>
 <script src="/public/js/search.js"></script>
+<script src="/public/js/save-music.js"></script>

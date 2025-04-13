@@ -1,8 +1,8 @@
 <?php
 
-require __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/Database.php';
+$connection = Database::getInstance(); // ✅ Usa Singleton directo
 
-$connection = getConnection();
 
 $isSqlite = $connection->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
 

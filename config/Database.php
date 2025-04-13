@@ -8,7 +8,7 @@ class Database
 
     private function __construct()
     {
-        $config = require __DIR__ . '/config.php';
+        $config = require_once __DIR__ . '/config.php';
         
         try {
             if ($config['env'] === 'dev') {
@@ -41,7 +41,3 @@ class Database
     }
 }
 
-// Función global para compatibilidad (opcional)
-function getConnection() {
-    return Database::getInstance();
-}

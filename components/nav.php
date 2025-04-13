@@ -28,6 +28,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'logout') {
         <div class="section-left">
             <a href="?page=recommends">Recomendados</a>
             <a href="?page=search">Busqueda</a>
+            <a href="?page=playlist">Playlist</a>
         </div>
         <div class="section-right">
             <?php if(isset($_SESSION['username'])): ?>

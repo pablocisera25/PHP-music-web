@@ -1,4 +1,5 @@
 <?php
+
 require __DIR__ . '/config/Database.php'; // Cargamos el Singleton
 
 // 2. Verificación de sesión (PRIMERO, antes que todo)
@@ -25,7 +26,12 @@ try {
     }
     
     if (!tableExists($connection, 'users')) {
-        require __DIR__ . '/../migrations/0001_create_users_table.php';
+        require __DIR__ . '/migrations/0001_create_users_table.php';
+    }
+
+    if(!tableExists($connection, 'saved_music'))
+    {
+        require __DIR__ .'/migrations/0002_crate_saved_music_table.php';
     }
 
 } catch (PDOException $e) {
@@ -67,6 +73,8 @@ try {
             include "./views/profile.php";
         } elseif($page === 'search'){
             include "./views/search.php";
+        } elseif($page === 'playlist'){
+            include "./views/playlist.php";
         } else {
             include "./views/error.php";
         }

@@ -1,12 +1,12 @@
 <?php
 // config/database.php
 
-require __DIR__ . '/Database.php'; // Incluimos la nueva clase Singleton
+require_once __DIR__ . '/Database.php'; // Incluimos la nueva clase Singleton
 
 // Función legacy para compatibilidad (puedes eliminarla gradualmente)
-function getConnection() {
+/*function getConnection() {
     return Database::getInstance();
-}
+}*/
 
 // Configuración antigua (para migración gradual)
 $config = require __DIR__ . '/config.php';

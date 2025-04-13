@@ -8,9 +8,16 @@ $dotenv->load();
 $env = $_ENV['APP_ENV'] ?? 'dev';
 
 if ($env === 'dev') {
+    $dbPath = $_ENV['DB_DATABASE'];
+
+    // Si tiene APP_BASE_PATH lo resolvemos (por si hay una ruta relativa)
+    if (str_starts_with($dbPath, '${APP_BASE_PATH}')) {
+        $dbPath = str_replace('${APP_BASE_PATH}', $_ENV['APP_BASE_PATH'], $dbPath);
+    }
+
     $dbConfig = [
         'driver' => $_ENV['DB_DRIVER'],
-        'database' => $_ENV['DB_DATABASE']
+        'database' => $dbPath,
     ];
 } else {
     $dbConfig = [
