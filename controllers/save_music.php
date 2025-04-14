@@ -44,7 +44,7 @@ try {
 
     echo json_encode([
         'success' => $success,
-        'message' => $success ? 'Guardado exitosamente' : 'No se pudo guardar'
+        'message' => $success ? `Lista de favoritos actualizada. Cancion:{$_POST['title']}` : 'No se pudo guardar'
     ]);
 } catch (Exception $e) {
     echo json_encode([
