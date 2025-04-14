@@ -9,51 +9,152 @@ let isDraggingProgress = false;
 let isMuted = false;
 let lastVolume = 50;
 let isPlayerReady = false;
-let pendingActions = []; // Cola de acciones pendientes
+let pendingActions = [];
+let playerInitialized = false;
+let retryCount = 0;
+let playerLoadTimeout = null;
 
-// Función para formatear el tiempo (segundos a MM:SS)
+const MAX_RETRIES = 3;
+const PLAYER_LOAD_TIMEOUT = 10000;
+
+// Función para formatear el tiempo
 function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-// Inicializar el reproductor de YouTube
-function onYouTubeIframeAPIReady() {
-    player = new YT.Player('youtube-player', {
-        height: '0',
-        width: '0',
-        playerVars: {
-            'autoplay': 1,
-            'controls': 0,
-            'disablekb': 1,
-            'modestbranding': 1
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
+// Cargar el API de YouTube
+function loadYouTubeAPI() {
+    if (window.YT && window.YT.Player) {
+        initializePlayer();
+        return;
+    }
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => {
+        if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            setTimeout(loadYouTubeAPI, 1000 * retryCount);
+        } else {
+            console.error('Error al cargar YouTube API');
+            createToast('Error al cargar el reproductor. Recarga la página.', 'error');
         }
-    });
+    };
+    
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+    setTimeout(() => {
+        if (!playerInitialized && retryCount < MAX_RETRIES) {
+            retryCount++;
+            loadYouTubeAPI();
+        }
+    }, PLAYER_LOAD_TIMEOUT);
+}
+
+// Inicializar el reproductor
+function initializePlayer() {
+    try {
+        player = new YT.Player('youtube-player', {
+            height: '0',
+            width: '0',
+            host: 'https://www.youtube.com',
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'disablekb': 1,
+                'modestbranding': 1,
+                'enablejsapi': 1,
+                'origin': window.location.origin
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange,
+                'onError': onPlayerError
+            }
+        });
+        
+        playerLoadTimeout = setTimeout(() => {
+            if (!isPlayerReady && retryCount < MAX_RETRIES) {
+                retryCount++;
+                initializePlayer();
+            }
+        }, PLAYER_LOAD_TIMEOUT);
+    } catch (error) {
+        console.error('Error al inicializar el reproductor:', error);
+        if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            setTimeout(initializePlayer, 1000 * retryCount);
+        }
+    }
+}
+
+function onYouTubeIframeAPIReady() {
+    initializePlayer();
 }
 
 function onPlayerReady(event) {
+    clearTimeout(playerLoadTimeout);
     isPlayerReady = true;
-    // Configurar volumen inicial
-    player.setVolume(50);
+    playerInitialized = true;
+    retryCount = 0;
+    
+    try {
+        // Verificar si el reproductor está realmente listo
+        if (player && typeof player.setVolume === 'function') {
+            player.setVolume(lastVolume);
+        } else {
+            console.warn('El reproductor no está completamente inicializado');
+            return;
+        }
 
-    // Configurar eventos de los controles
-    setupControls();
+        setupControls();
+        processPendingActions();
+        restorePlayButtons();
+        console.log('Reproductor de YouTube listo');
+    } catch (error) {
+        console.error('Error en onPlayerReady:', error);
+    }
+}
 
-    // Procesar acciones pendientes
-    processPendingActions();
+// Resto del código permanece igual...
 
-    // Restaurar estado de los botones
-    restorePlayButtons();
+function onPlayerError(event) {
+    console.error('Error en el reproductor:', event.data);
+    
+    let errorMessage = 'Error al reproducir el video';
+    switch(event.data) {
+        case 2: errorMessage = 'ID de video no válido'; break;
+        case 5: errorMessage = 'Error en el reproductor HTML5'; break;
+        case 100: errorMessage = 'Video no encontrado'; break;
+        case 101: 
+        case 150: errorMessage = 'El video no permite reproducción embebida'; break;
+    }
+    
+    createToast(errorMessage, 'error');
+    
+    // Reintentar solo para errores recuperables
+    if ([2, 5, 100].includes(event.data) && retryCount < MAX_RETRIES) {
+        retryCount++;
+        setTimeout(() => {
+            if (currentVideoId) {
+                player.loadVideoById(currentVideoId);
+            }
+        }, 1000 * retryCount);
+    } else {
+        restorePlayButtons();
+    }
 }
 
 function processPendingActions() {
+    if (pendingActions.length === 0) return;
+    
+    console.log('Procesando acciones pendientes:', pendingActions.length);
+    
     pendingActions.forEach(action => {
-        const { videoId, videoTitle, videoChannel, button } = action;
+        const { videoId, videoTitle, videoChannel, thumbnail, url, button } = action;
         executePlayAction(videoId, videoTitle, videoChannel);
 
         // Restaurar el botón específico
@@ -62,6 +163,7 @@ function processPendingActions() {
             button.disabled = false;
         }
     });
+    
     pendingActions = []; // Limpiar la cola
 }
 
@@ -76,20 +178,50 @@ function onPlayerStateChange(event) {
     const container = document.getElementById('player-container');
     const playPauseBtn = document.getElementById('play-pause-btn');
 
-    if (event.data === YT.PlayerState.PLAYING) {
-        container.style.display = 'block';
-        playPauseBtn.textContent = '❚❚';
-        startProgressTimer();
-    } else if (event.data === YT.PlayerState.PAUSED) {
-        playPauseBtn.textContent = '▶';
-        stopProgressTimer();
-    } else if (event.data === YT.PlayerState.ENDED) {
-        playPauseBtn.textContent = '▶';
-        stopProgressTimer();
+    switch (event.data) {
+        case YT.PlayerState.PLAYING:
+            container.style.display = 'block';
+            playPauseBtn.textContent = '❚❚';
+            startProgressTimer();
+            retryCount = 0; // Resetear contador de reintentos al reproducir
+            break;
+            
+        case YT.PlayerState.PAUSED:
+            playPauseBtn.textContent = '▶';
+            stopProgressTimer();
+            break;
+            
+        case YT.PlayerState.ENDED:
+            playPauseBtn.textContent = '▶';
+            stopProgressTimer();
+            break;
+            
+        case YT.PlayerState.BUFFERING:
+            handleBuffering();
+            break;
+            
+        case YT.PlayerState.CUED:
+            // Video cargado pero no reproduciendo
+            break;
+            
+        case YT.PlayerState.UNSTARTED:
+            // Video no iniciado
+            break;
     }
 }
 
-// Configurar los controles del reproductor
+function handleBuffering() {
+    // Si lleva más de 5 segundos buffereando, intentar solucionarlo
+    setTimeout(() => {
+        if (player && player.getPlayerState() === YT.PlayerState.BUFFERING) {
+            const currentTime = player.getCurrentTime();
+            const newTime = currentTime < 1 ? currentTime + 1 : currentTime + 5;
+            player.seekTo(newTime, true);
+            createToast('Optimizando reproducción...', 'info');
+        }
+    }, 5000);
+}
+
 function setupControls() {
     const playPauseBtn = document.getElementById('play-pause-btn');
     const progressContainer = document.getElementById('progress-container');
@@ -100,10 +232,16 @@ function setupControls() {
     // Play/Pause
     playPauseBtn.addEventListener('click', function () {
         if (!isPlayerReady) return;
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-            player.pauseVideo();
-        } else {
-            player.playVideo();
+        
+        try {
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        } catch (error) {
+            console.error('Error al controlar reproducción:', error);
+            createToast('Error al controlar la reproducción', 'error');
         }
     });
 
@@ -111,48 +249,62 @@ function setupControls() {
     progressContainer.addEventListener('click', function (e) {
         if (!currentVideoId || !isPlayerReady) return;
 
-        const rect = this.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        player.seekTo(player.getDuration() * percent, true);
+        try {
+            const rect = this.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            player.seekTo(player.getDuration() * percent, true);
+        } catch (error) {
+            console.error('Error al buscar posición:', error);
+        }
     });
 
     // Mute/Unmute
     muteBtn.addEventListener('click', function () {
         if (!isPlayerReady) return;
-        if (isMuted) {
-            player.unMute();
-            player.setVolume(lastVolume);
-            volumeSlider.value = lastVolume;
-            muteBtn.textContent = '🔊';
-        } else {
-            lastVolume = player.getVolume();
-            player.mute();
-            muteBtn.textContent = '🔇';
+        
+        try {
+            if (isMuted) {
+                player.unMute();
+                player.setVolume(lastVolume);
+                volumeSlider.value = lastVolume;
+                muteBtn.textContent = '🔊';
+            } else {
+                lastVolume = player.getVolume();
+                player.mute();
+                muteBtn.textContent = '🔇';
+            }
+            isMuted = !isMuted;
+        } catch (error) {
+            console.error('Error al controlar volumen:', error);
         }
-        isMuted = !isMuted;
     });
 
     // Control de volumen
     volumeSlider.addEventListener('input', function () {
         if (!isPlayerReady) return;
-        const volume = this.value;
-        player.setVolume(volume);
-        lastVolume = volume;
+        
+        try {
+            const volume = this.value;
+            player.setVolume(volume);
+            lastVolume = volume;
 
-        if (volume == 0) {
-            muteBtn.textContent = '🔇';
-            isMuted = true;
-        } else {
-            muteBtn.textContent = '🔊';
-            isMuted = false;
+            if (volume == 0) {
+                muteBtn.textContent = '🔇';
+                isMuted = true;
+            } else {
+                muteBtn.textContent = '🔊';
+                isMuted = false;
+            }
+        } catch (error) {
+            console.error('Error al ajustar volumen:', error);
         }
     });
 
-    // Dentro de la función setupControls(), agregar:
+    // Botón de favoritos
     const favoriteBtn = document.getElementById('favorite-btn');
     favoriteBtn.addEventListener('click', async function (event) {
         event.preventDefault();
-        event.stopPropagation(); // ⚡ Esto evita que otros listeners activen sus mensajes
+        event.stopPropagation();
     
         if (!currentVideoId) {
             createToast('No hay ninguna canción reproduciéndose', 'error');
@@ -186,7 +338,7 @@ function setupControls() {
                     favoriteBtn.textContent = originalText;
                     favoriteBtn.disabled = false;
                 }, 1500);
-                createToast(result.message || `Canción guardada: ${currentVideoTitle}`, 'success'); // 🔥 Solo tu toast
+                createToast(result.message || `Canción guardada: ${currentVideoTitle}`, 'success');
             } else {
                 throw new Error(result.message || 'Error al guardar');
             }
@@ -194,13 +346,12 @@ function setupControls() {
             console.error('Error:', error);
             favoriteBtn.textContent = '📁';
             favoriteBtn.disabled = false;
-            createToast(error.message, 'error'); // 🔥 Solo tu toast
+            createToast(error.message, 'error');
         }
     });
 }
 
-
-// TOAST CUSTOM CASERO 🔥
+// TOAST CUSTOM CASERO
 function createToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `custom-toast ${type}`;
@@ -213,6 +364,7 @@ function createToast(message, type = 'success') {
         backgroundColor: type === 'success' ? '#4CAF50' :
                          type === 'error'   ? '#F44336' :
                          type === 'warning' ? '#FFC107' :
+                         type === 'info'   ? '#2196F3' :
                          '#2196F3',
         color: 'white',
         padding: '12px 20px',
@@ -242,13 +394,21 @@ function createToast(message, type = 'success') {
 function updateProgress() {
     if (!currentVideoId || isDraggingProgress || !isPlayerReady) return;
 
-    const currentTime = player.getCurrentTime();
-    const duration = player.getDuration();
-    const percent = (currentTime / duration) * 100;
+    try {
+        const currentTime = player.getCurrentTime();
+        const duration = player.getDuration();
+        
+        // Verificar valores válidos
+        if (isNaN(currentTime) || isNaN(duration)) return;
+        
+        const percent = (currentTime / duration) * 100;
 
-    document.getElementById('progress-bar').style.width = percent + '%';
-    document.getElementById('time-display').textContent =
-        `${formatTime(currentTime)} / ${formatTime(duration)}`;
+        document.getElementById('progress-bar').style.width = percent + '%';
+        document.getElementById('time-display').textContent =
+            `${formatTime(currentTime)} / ${formatTime(duration)}`;
+    } catch (error) {
+        console.error('Error al actualizar progreso:', error);
+    }
 }
 
 function startProgressTimer() {
@@ -266,26 +426,47 @@ function executePlayAction(videoId, videoTitle, videoChannel) {
     const nowPlaying = document.getElementById('now-playing');
     const playerChannel = document.getElementById('player-channel');
 
+    if (!player || !player.loadVideoById) {
+        createToast('Reproductor no disponible. Inténtalo de nuevo.', 'error');
+        return;
+    }
+
     currentVideoId = videoId;
     currentVideoTitle = videoTitle;
     currentVideoChannel = videoChannel;
 
     nowPlaying.textContent = videoTitle;
     playerChannel.textContent = videoChannel;
-
-    if (player.getPlayerState() === YT.PlayerState.PLAYING && player.getVideoData().video_id === videoId) {
-        player.pauseVideo();
-        return;
-    }
-
     container.style.display = 'block';
-    player.loadVideoById(videoId);
-    player.playVideo();
+
+    try {
+        // Si ya está reproduciendo el mismo video, pausarlo
+        if (player.getPlayerState() === YT.PlayerState.PLAYING && 
+            player.getVideoData().video_id === videoId) {
+            player.pauseVideo();
+            return;
+        }
+
+        // Cargar y reproducir el nuevo video con calidad baja para mejor rendimiento
+        player.loadVideoById({
+            videoId: videoId,
+            suggestedQuality: 'small'
+        });
+        
+        // Forzar reproducción después de un breve retraso por si falla el autoplay
+        setTimeout(() => {
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+        }, 500);
+    } catch (error) {
+        console.error('Error al reproducir:', error);
+        createToast('Error al reproducir el video', 'error');
+    }
 }
 
 // Función para manejar la reproducción (con cola de eventos)
 function playVideo(videoId, videoTitle, videoChannel, thumbnail, url, button) {
-
     // Guardar los datos globalmente
     currentVideoId = videoId;
     currentVideoTitle = videoTitle;
@@ -293,14 +474,22 @@ function playVideo(videoId, videoTitle, videoChannel, thumbnail, url, button) {
     currentVideoThumbnail = thumbnail;
     currentVideoUrl = url;
 
-    if (!isPlayerReady) {
-        // Agregar a la cola de acciones pendientes
-        pendingActions.push({ videoId, videoTitle, videoChannel, thumbnail, url, button });
+    // Actualizar UI inmediatamente
+    document.getElementById('now-playing').textContent = videoTitle;
+    document.getElementById('player-channel').textContent = videoChannel;
+    document.getElementById('player-container').style.display = 'block';
 
-        // Cambiar el estado del botón
-        if (button) {
-            button.textContent = "Cargando...";
-            button.disabled = true;
+    if (button) {
+        button.textContent = "Cargando...";
+        button.disabled = true;
+    }
+
+    if (!isPlayerReady) {
+        pendingActions.push({ videoId, videoTitle, videoChannel, thumbnail, url, button });
+        
+        // Asegurarnos de que el reproductor se está cargando
+        if (!playerInitialized) {
+            loadYouTubeAPI();
         }
         return;
     }
@@ -310,6 +499,9 @@ function playVideo(videoId, videoTitle, videoChannel, thumbnail, url, button) {
 
 // Asignar eventos a los botones de reproducción
 document.addEventListener('DOMContentLoaded', function () {
+    // Cargar el API de YouTube al iniciar la página
+    loadYouTubeAPI();
+
     const playButtons = document.querySelectorAll('.play-btn');
 
     playButtons.forEach(button => {
