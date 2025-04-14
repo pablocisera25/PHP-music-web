@@ -19,6 +19,26 @@
     margin: 0;
 }
 
+.scrollable-list {
+    max-height: calc(100vh - 150px); /* ajusta si tienes un header fijo */
+    overflow-y: auto;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #ccc transparent;
+}
+
+/* Estilo opcional para scrollbars en WebKit */
+.scrollable-list::-webkit-scrollbar {
+    width: 8px;
+}
+.scrollable-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollable-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+
 .music-item {
     display: flex;
     align-items: center;

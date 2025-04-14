@@ -22,8 +22,6 @@ if (isset($_GET['q'])) {
 <link rel="stylesheet" href="/public/css/player-card.css">
 
 <div class="search-music">
-    <h1>Buscar música</h1>
-
     <form class="search-form" method="get">
         <input type="hidden" name="page" value="search">
         <input type="text" name="q" placeholder="Buscar artistas o canciones..."
