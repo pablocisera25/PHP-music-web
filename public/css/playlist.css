@@ -129,3 +129,78 @@
     width: 70px;
     margin-left: 5px;
 }
+
+/* Toast Notification Styles */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    padding: 15px 25px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    color: white;
+    font-family: sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 300px;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    background-color: #4CAF50;
+}
+
+.toast.error {
+    background-color: #F44336;
+}
+
+.toast.warning {
+    background-color: #FF9800;
+}
+
+/*
+* configuracion del boton clean
+*/
+
+/* Estilos para el botón de limpieza */
+.clean {
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.clean:hover {
+    background-color: #222020;
+    transform: scale(1.1);
+}
+
+.clean:active {
+    transform: scale(0.95);
+    background-color: #2b2727;
+}
+
+.options {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}

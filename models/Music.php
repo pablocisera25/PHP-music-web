@@ -36,4 +36,13 @@ class Music
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function deleteMusic($videoId)
+    {
+        $stmt = $this->db->prepare("
+            DELETE FROM saved_music WHERE video_id = :video_id
+        ");
+
+        return $stmt->execute([':video_id'=> $videoId]);
+    }
 }
