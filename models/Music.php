@@ -30,6 +30,7 @@ class Music
     {
         $stmt = $this->db->prepare("
             SELECT * FROM saved_music
+            ORDER BY id DESC
         ");
 
         $stmt->execute();

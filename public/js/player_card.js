@@ -499,6 +499,18 @@ function playVideo(videoId, videoTitle, videoChannel, thumbnail, url, button) {
 
 // Asignar eventos a los botones de reproducción
 document.addEventListener('DOMContentLoaded', function () {
+
+    const presentacion = document.querySelector('.presentacion');
+    const searchForm = document.querySelector('.search-form');
+    
+    // Ocultar inmediatamente al enviar el formulario (para mejor experiencia)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function() {
+            presentacion?.classList.add('hidden');
+        });
+    }
+     
+
     // Cargar el API de YouTube al iniciar la página
     loadYouTubeAPI();
 
@@ -512,6 +524,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const videoChannel = card.querySelector('.card-channel').textContent;
             const videoThumbnail = card.querySelector('img').getAttribute('src');
             const videoUrl = card.querySelector('.youtube-link').getAttribute('href');
+
+            
 
             if (videoId) {
                 playVideo(videoId, videoTitle, videoChannel, videoThumbnail, videoUrl, this);

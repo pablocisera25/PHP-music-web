@@ -33,7 +33,19 @@ if (isset($_GET['q'])) {
         <div class="error-message"><?= htmlspecialchars($error) ?></div>
     <?php endif ?>
 
+    <div class="presentacion <?= isset($_GET['q'])? 'hidden':'' ?>">
+        <div class="presentacion-content">
+            <h2>Bienvenido al Buscador de Música</h2>
+            <p>Busca tus artistas o canciones favoritas para comenzar a escuchar.</p>
+            <p>Haz clic en "Reproducir" para escuchar la canción o en "YouTube" para ver el video original.</p>
+            <div class="presentacion-icon">🎵</div>
+        </div>
+    </div>
+
     <div class="music-grid">
+
+
+
         <?php foreach ($results as $result): ?>
             <div class="music-card" data-video-id="<?= $result['videoId'] ?>">
                 <div class="card-thumbnail">
@@ -52,7 +64,7 @@ if (isset($_GET['q'])) {
     </div>
 
     <div id="youtube-player" style="display: none;"></div>
-    
+
     <!-- Reproductor personalizado -->
     <div id="player-container">
         <div id="player-content">
@@ -81,3 +93,4 @@ if (isset($_GET['q'])) {
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script src="/public/js/player_card.js"></script>
+<script src="/public/js/presentacion.js"></script>
